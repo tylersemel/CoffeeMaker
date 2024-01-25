@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Inventory</title>
+    <link rel="stylesheet" href="css/bootstrap.css" />
+    <link rel="stylesheet" href="css/onboarding.css" />
+    <style>
+        input.ng-valid {
+        	background-color: lightgreen;
+        }
+        
+        .formList{
+        	height: 50vh;
+        			  	overflow-y: auto;
+        			
+        }
+        .generic-container{
+        width: 65vw;
+        }
+        .formcontainer, .panel {
+        width: 50vw;
+        }
+        /*to style the popups*/
+        	    .content {
+        	        position: absolute;
+        	        align-self: center;
+        	        /* margin-right: 50px; */
+        	        top: 0;
+        	    }
+        	
+        	 
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+</head>
+
+<body>
+
+    <script>
+        /*<![CDATA[*/
+        		var app = angular.module('myApp', []);
+        		app.controller('inventoryCtrl', function($scope, $http) {
+        		       // the original values
+        			$scope.newInventory = [];
+        		    $scope.ingredientOriginal = [];
+        		       // grabbing the inventory
+        		      $scope.getInventory = function(){
+        		    	  $http.get("/api/v1/inventory").then(function(response) {
+        		    		 
+        		    		  for (let i = 0; i < response.data.length; i++) {
+        		    			  var j = {id: response.data[i].id, name: response.data[i].name,original: response.data[i].amount,amount: 0 }
+        		    			  $scope.ingredientOriginal.push(j);
+        		    		  }
+        		    	  }
+        		    	  )
+        		      }
+        		      
+        
+        			$scope.updateInventory = function() {
+        				 $scope.showErr = false;
+        	               $scope.showSuccess = false;
+        				for (let i = 0; i < $scope.ingredientOriginal.length; i++) {
+  		    			  var j = {id: $scope.ingredientOriginal[i].id, name: $scope.ingredientOriginal[i].name, amount: $scope.ingredientOriginal[i].amount }
+  		    			  $scope.newInventory.push(j);
+  		    		  }
+        				
+        					 for (let i = 0; i < $scope.newInventory.length; i++) {
+        						
+        						 	$http.put("/api/v1/inventory", 	$scope.newInventory[i]).then(
+        						function(success) {
+        							 $scope.successMsg = "Sucess!\n You have successfully updated the inventory"
+        				                   
+        							 
+        			                    $scope.showSuccess = true;
+        						}, function(rejection) {
+        							
+        							console.log(rejection);
+        							$scope.successMsg = "Error - Max Units Met\nExceeding at max number of units met";
+        							
+        		                    $scope.showSuccess = true;
+        		                    
+        						});
+        						 	
+        				}
+        					
+        					
+        					$scope.getInventory();
+        				$scope.success = !($scope.failure);
+        			}
+        
+        			$scope.submit = function() {
+        				$scope.updateInventory();
+        				$scope.reset();
+        			}
+        
+        		
+        
+        			$scope.reset = function() {
+        				$scope.ingredientOriginal = [];
+        				$scope.newInventory = [];
+        				$scope.success = false;
+        				$scope.failure = false; 
+        				if (undefined != $scope.addInventoryForm) {
+        					$scope.addInventoryForm.$setPristine(); //reset Form
+        				}
+        			}
+        		    //to close the popup when user clicks 'Ok'
+        	        $scope.closePopup = function() {
+        	            $scope.showErr = false;
+        	            $scope.showSuccess = false;
+        	        }
+        	        
+        			//to load the list of ingredients when webpage loads & wehn user adds to list
+        			$scope.$on("$viewContentLoaded", $scope.getInventory());
+        			$scope.reset();
+        			
+        			
+        
+        		});
+        		/*]]>*/
+    </script>
+
+    <div class="generic-container ng-cloak" ng-app="myApp" ng-controller="inventoryCtrl as ctrl">
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+                <span class="lead">Update Inventory Form </span>
+            </div>
+             <div ng-show="showSuccess" class="content success-popup-container show" id="success-popup">
+                <div class="success-popup-content">
+                    <div ng-bind="successMsg"></div>
+                </div>
+                <button class="ok-success-button" ng-click="closePopup()">Ok</button>
+            </div>
+
+            <div ng-show="showErr" class="content error-popup-container show" id="error-popup">
+                <div class="error-popup-content">
+                    <div ng-bind="failureMsg"></div>
+                </div>
+                <button class="ok-error-button" ng-click="closePopup()">Ok</button>
+            </div>
+            <div class="formcontainer">
+                <form ng-submit="submit()" name="addInventoryForm" class="form-horizontal">
+
+                    <div class="formList">
+
+                        <div class="row">
+                            <div class="form-group col-md-12" ng-repeat="ingredient in ingredientOriginal track by $index">
+
+                                <span class="col-md-2 control-lable" for="file" ng-bind="{{ingredient.name}}"></span> {{ingredient.name}} : {{ingredient.original}}
+                                <div class="col-md-7">
+                                    <input type="number" class="form-control input-sm" placeholder="Enter amount of {{ingredient.name}}" ng-model="ingredient.amount" required="0" min="0" />
+                                    <div class="has-error" ng-show="addInventoryForm.$dirty">
+                                        <span ng-show="addInventoryForm.{{ingredient.name}}.$error.required">This
+										is a required field.</span> <span ng-show="addRecipeForm.coffee.$error.min">Minimum
+										amount is 0.</span> <span ng-show="addInventoryForm.{{ingredient.name}}.$invalid">This
+										field is invalid.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+  <div class="row">
+                <div class="form-actions floatRight">
+                    <input type="submit" value="Submit" class="btn btn-primary btn-sm" ng-disabled="addInventoryForm.$invalid" />
+                 </div>
+            </div>
+            </form>
+            </div>
+        </div>
+     </div>
+
+    <a href="/staffHomepage.html">Home</a>
+    </div>
+
+</body>
+
+</html>

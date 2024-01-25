@@ -1,0 +1,482 @@
+<!-- Adding a static page for the UC4 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="ISO-8859-1" />
+        <title>Edit Recipe</title>
+
+        <style>
+            input.ng-valid {
+                background-color: lightgreen;
+            }
+
+            input.ng-dirty.ng-invalid-required,
+            input.ng-dirty.ng-invalid-number {
+                background-color: red;
+            }
+
+            input.ng-dirty.ng-invalid-min {
+                background-color: yellow;
+            }
+
+            .ingredientsList,
+            .inventory {
+                background-color: lightgray;
+                height: 200px;
+                overflow-y: scroll;
+                width: 25vw;
+                padding: 10px;
+                margin: 10px;
+            }
+
+            .container {
+                display: flex;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            .back-btn {
+                padding: 5px 10px 5px 10px;
+                margin: 5px;
+            }
+            .back-btn a {
+                text-decoration: none;
+            }
+            .sec-1 {
+                background-color: #dae8e8;
+            }
+            .sec-1,
+            .sec-2 {
+                padding: 10px;
+            }
+
+            .sec-1,
+            .sec-2 {
+                padding: 10px;
+            }
+            h4,
+            .panel-heading {
+                text-align: center;
+            }
+            /*to style the popups*/
+            .content {
+                position: absolute;
+                align-self: center;
+                /* margin-right: 50px; */
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .success-popup-container,
+            .error-popup-container {
+                z-index: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 300px;
+                width: 300px;
+                border: 3px solid black;
+                border-radius: 5px;
+                position: fixed;
+                background-color: white;
+                pointer-events: none;
+                top: 15%;
+                left: 42%;
+                padding: 25px;
+                box-shadow: 0 8px 8px -4px gray;
+            }
+
+            .success-popup-container.show,
+            .error-popup-container.show {
+                pointer-events: auto;
+            }
+
+            .success-popup-content,
+            .error-popup-content {
+                font-size: 20px;
+                margin-bottom: 30px;
+                max-width: 100%;
+            }
+
+            .success-popup-container button,
+            .error-popup-container button {
+                border: 0;
+                border-radius: 5px;
+                width: 200px;
+                height: 40px;
+                background-color: #f0ad4e;
+                cursor: pointer;
+            }
+            .success-popup-container button:hover,
+            .error-popup-container button:hover {
+                background-color: #337ab7;
+                color: white;
+            }
+        </style>
+
+        <link rel="stylesheet" href="css/bootstrap.css" />
+      <link rel="stylesheet" href="css/onboarding.css" />
+    </head>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+
+    <body>
+        <script>
+            var app = angular.module("myApp", []);
+            app.controller("recipesCtrl", function ($scope, $http, $q) {
+                $scope.recipes = [];
+                //list of all the ingredients in the invenotry
+                $scope.ingredients = [];
+                $scope.originalIngredients = [];
+
+                //to retrieve the list of recipes
+                $scope.getRecipes = function () {
+                    $http.get("/api/v1/recipes").then(function (response) {
+                        $scope.recipes = response.data;
+                        //	console.log($scope.recipes);
+                    });
+                };
+
+                //to select the recipe to show
+                $scope.showRecipe = function (name) {
+                    $scope.r = $scope.recipes.find(
+                        (recipe) => recipe.name === name
+                    );
+                    $scope.originalIngredients = [];
+                    $scope.ingredients = [];
+                    $scope.originalIngredients = $scope.r.ingredients;
+                    $scope.getIngredients();
+                   
+                };
+
+                //to retrieve the list of ingredients to be shown under add new ingredients
+                $scope.getIngredients = function () {
+                	 $http.get("/api/v1/inventory").then(function (response) {
+                        for (let i = 0; i < response.data.length; i++) {
+                            let dupe = $scope.r.ingredients.find(
+                                (element) =>
+                                    element.name == response.data[i].name
+                            );
+                            if (!dupe) {
+                                var j = {
+                                    name: response.data[i].name,
+                                    amount: 0,
+                                    selected: false,
+                                };
+                                $scope.ingredients.push(j);
+                            } else {
+                                var j = {
+                                    name: dupe.name,
+                                    amount: dupe.amount,
+                                    selected: true,
+                                };
+
+                                $scope.ingredients.push(j);
+                            }
+                        }
+                    });
+                };
+                //get the ingredients selected and removed from the list
+                $scope.show = function () {
+                    for (let i = 0; i < $scope.ingredients.length; i++) {
+                        var n = $scope.ingredients[i].name;
+                        var bool = $scope.ingredients[i].selected;
+                        var idx = $scope.r.ingredients.findIndex(function (
+                            ingr
+                        ) {
+                            return ingr.name == n;
+                        });
+
+                       //if not in the r.ingredients and has been checked,, add to it
+
+                        if (idx == -1 && bool) {
+                            $scope.r.ingredients.push($scope.ingredients[i]);
+                        }
+                        //if item is found in the list and has been unchecked,, remove it
+                        else if (idx > -1 && !bool) {
+                            $scope.r.ingredients.splice(idx, 1);
+                        }
+                     
+                    }
+                };
+
+                //to close the popup when user clicks 'Ok'
+                $scope.closePopup = function () {
+                    $scope.reset();
+                };
+
+                $scope.update = function () {
+                    $scope.showErr = false;
+                    $scope.showSuccess = false;
+                    // $scope.mappingIngredients();
+
+                    console.log($scope.r)
+                    console.log($scope.originalIngredients);
+                    console.log($scope.ingredients);
+                    // POST api to append the new recipe
+                    $http
+                        .put("/api/v1/recipes/" + $scope.r.name, $scope.r)
+                        .then(
+                            function (success) {
+                                //setting the success msg
+                                $scope.successMsg =
+                                    "Sucess!\n You have successfully updated the recipe";
+                                $scope.showErr = false;
+                                $scope.showSuccess = true;
+                            },
+                            function (rejection) {
+                                //if unable to put
+                                console.log(rejection);
+                                if (rejection.status == 409) {
+                                    $scope.failureMsg =
+                                        "Error - Duplicate Name\n This Recipe already exists. Try again.";
+                                } else if (rejection.status == 507) {
+                                    $scope.failureMsg =
+                                        "Error - Invalid Input\n The amount entered must be a positive integer and less than 100. ";
+                                }
+
+                                $scope.showErr = true;
+                                $scope.showSuccess = false;
+                            }
+                        );
+                };
+
+                $scope.reset = function () {
+                    //list of new ingredients to be added to the recipe
+                    $scope.ingredients = [];
+                    $scope.showErr = false;
+                    $scope.showSuccess = false;
+                    $scope.r = [];
+                    // reset form
+                    if (undefined != $scope.recipesCtrl) {
+                        $scope.recipesCtrl.$setPristine();
+                    }
+                };
+                $scope.$on("$viewContentLoaded", $scope.getRecipes());
+                //$scope.reset();
+            });
+        </script>
+        <div
+            ng-app="myApp"
+            class="generic-container ng-cloak"
+            ng-controller="recipesCtrl as ctrl"
+        >
+            <div class="panel-heading">
+                <span class="lead">Edit Recipe</span>
+            </div>
+            <div class="panel panel-default">
+                <div
+                    ng-show="showSuccess"
+                    class="content success-popup-container show"
+                    id="success-popup"
+                >
+                    <div class="success-popup-content">
+                        <div ng-bind="successMsg"></div>
+                    </div>
+                    <button class="ok-success-button" ng-click="closePopup()">
+                        Ok
+                    </button>
+                </div>
+
+                <div
+                    ng-show="showErr"
+                    class="content error-popup-container show"
+                    id="error-popup"
+                >
+                    <div class="error-popup-content">
+                        <div ng-bind="failureMsg"></div>
+                    </div>
+                    <button class="ok-error-button" ng-click="closePopup()">
+                        Ok
+                    </button>
+                </div>
+                <div class="formcontainer">
+                    <form
+                        ng-submit="submit()"
+                        name="updateRecipeForm"
+                        class="form-horizontal container"
+                    >
+                        <div class="sec-1">
+                            <li ng-repeat="recipe in recipes">
+                                <label
+                                    >{{recipe.name}}
+                                    <input
+                                        type="radio"
+                                        ng-model="recipe.name"
+                                        name="name"
+                                        value="{{recipe.name}}"
+                                        required="true"
+                                        ng-click="showRecipe(recipe.name)"
+                                    />
+                                </label>
+                            </li>
+
+                            <br />
+                        </div>
+                        <div class="sec-2">
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2 control-lable" for="file"
+                                    >Name</label
+                                >
+                                <div class="form-group col-md-12">
+                                    <div class="col-md-7">
+                                        <input
+                                            type="text"
+                                            ng-model="r.name"
+                                            name="name"
+                                            class="name form-control input-sm"
+                                            value="r.name"
+                                            required="0"
+                                            pattern="[a-zA-Z]+"
+                                        />
+                                        <div
+                                            class="has-error"
+                                            ng-show="addRecipeForm.$dirty"
+                                        >
+                                            <span
+                                                ng-show="addRecipeForm.name.$error.required"
+                                                >This is a required field.</span
+                                            >
+                                            <span
+                                                ng-show="addRecipeForm.name.$invalid"
+                                                >This field is invalid.</span
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="col-md-2 control-lable" for="file"
+                                    >Price</label
+                                >
+                                <div class="form-group col-md-12">
+                                    <div class="col-md-7">
+                                        <input
+                                            type="number"
+                                            ng-model="r.price"
+                                            name="price"
+                                            class="form-control input-sm"
+                                            value="r.price"
+                                            required="0"
+                                            min="0"
+                                        />
+                                        <div
+                                            class="has-error"
+                                            ng-show="addRecipeForm.$dirty"
+                                        >
+                                            <span
+                                                ng-show="addRecipeForm.price.$error.required"
+                                                >This is a required field</span
+                                            >
+                                            <span
+                                                ng-show="addRecipeForm.price.$error.min"
+                                                >Minimum amount is 0</span
+                                            >
+                                            <span
+                                                ng-show="addRecipeForm.price.$invalid"
+                                                >This field is invalid
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <div class="ingredientsList col-md-7">
+                                    <form
+                                        name="addIngredientForm"
+                                        class="form-horizontal"
+                                    >
+                                        <div
+                                            ng-repeat="ingredient in r.ingredients track by $index"
+                                        >
+                                            <label
+                                                class="col-md-2 control-lable"
+                                                for="file"
+                                                value="{{ingredients.name}}"
+                                            >
+                                                {{ingredient.name}}
+                                            </label>
+
+                                            <div class="form-group col-md-12">
+                                                <div class="col-md-7">
+                                                    <input
+                                                        type="number"
+                                                        ng-model="ingredient.amount"
+                                                        name="amount"
+                                                        class="amount form-control input-sm"
+                                                        value="ingredient.amount"
+                                                        required="0"
+                                                        min="0"
+                                                    />
+                                                    <div
+                                                        class="has-error"
+                                                        ng-show="addIngredientForm.$dirty"
+                                                    >
+                                                        <span
+                                                            ng-show="addIngredientForm.amount.$error.required"
+                                                            >This is a required
+                                                            field</span
+                                                        >
+                                                        <span
+                                                            ng-show="addIngredientForm.amount.$error.min"
+                                                            >Minimum amount is
+                                                            0</span
+                                                        >
+                                                        <span
+                                                            ng-show="addIngredientForm.amount.$invalid"
+                                                            >This field is
+                                                            invalid
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div ng-if="recipes.length > 0">
+                            <input
+                                type="submit"
+                                value="Update"
+                                ng-click="update()"
+                                class="btn btn-warning btn-sm"
+                            />
+                        </div>
+
+                        <div ng-if="0 >= recipes.length">
+                            There are no recipes in the Coffee Maker.
+                        </div>
+                        <div ng-if="submissionSuccess">
+                            Recipe updated successfully
+                        </div>
+
+                        <div
+                            ng-repeat="ingredient in ingredients track by $index"
+                        >
+                            <div class="checkDiv">
+                                <input
+                                    type="checkbox"
+                                    class="ivtIngredients"
+                                    ng-model="ingredient.selected"
+                                    ng-true-value="true"
+                                    ng-false-value="false"
+                                    value="{{ingredients.name}}"
+                                    ng-click="show()"
+                                />
+                                {{ingredient.name}}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <button class="back-btn"><a href="/staffHomepage.html">Back</a></button>
+    </body>
+</html>

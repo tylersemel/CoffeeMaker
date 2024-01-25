@@ -1,0 +1,354 @@
+<!-- rxiao3: Implemented the menu UI enchancement, linking with http, and cleaning up the code -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+</html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="css/app.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders</title>
+
+    <!-- second font chosen -->
+    <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/architecture-font" type="text/css" />
+    <!-- to use Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+    <!-- to use Bootstrap mask -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet" />
+</head>
+<!-- To link AngularJS -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+
+<style>
+    body {
+        display: block;
+    }
+</style>
+
+<body>
+    <script>
+        //creating an app container to use api endpoints
+        var app = angular.module("myApp", []);
+        app.controller("menu", function ($scope, $http, $q) {
+            //grab all the recipes
+            $scope.recipes = new Map();
+            //original Inventory
+            $scope.ingredientOriginal = [];
+            $scope.orders = [];
+            $scope.selectedValues = [];
+
+            // retrieving the recipes to grab the ingredient's amount
+            $http.get("/api/v1/recipes").then(function (response) {
+                for (let i = 0; i < response.data.length; i++) {
+                    let name = response.data[i].name;
+
+                    //console.log(response.data[i]);
+                    var j = {
+                        name: name,
+                        ingredients: response.data[i].ingredients,
+                    };
+
+                    $scope.recipes.set(name, j);
+                }
+             
+            });
+
+            // grabbing the inventory
+            $scope.getInventory = function () {
+                $http.get("/api/v1/inventory").then(function (response) {
+                    for (let i = 0; i < response.data.length; i++) {
+                        var j = { id: response.data[i].id, name: response.data[i].name, original: response.data[i].amount };
+                        $scope.ingredientOriginal.push(j);
+                    }
+                });
+            };
+
+            //the current user in the system (Mock data for now)
+            $scope.user = {
+                name: sessionStorage.getItem("staffName"),
+            };
+
+            //retrieve the curr authenticated user
+            $http.get("/api/v1/staffs/" + $scope.user.name).then(
+                function (success) {
+                    console.log("successfully on my orders page");
+                },
+                function (rejection) {
+                    console.log(rejection);
+                }
+            );
+
+            //to close the popup when user clicks 'Ok'
+            $scope.closePopup = function () {
+                $scope.showSuccess = false;
+                $scope.reset();
+            };
+
+            //to display the selected order
+            $scope.select = function (selected) {
+console.log(selected);
+                var index = $scope.selectedValues.indexOf(selected);
+                if (selected.isChecked) {
+                    // adding the value if checked and not exist in array
+                    if (index == -1) {
+                        if (selected.inventory == null || selected.inventory !== Map) {
+                            selected.inventory = new Map();
+                        }
+                        //compute the total ingredients needed for an order by mapping between the recipe amounts
+                        for (var i = 0; i < selected.recipes.length; i++) {
+                            //find the recipe and grab it's ingredient amount
+                            let ingredients = $scope.recipes.get(selected.items[i].name).ingredients;
+
+                            for (var j = 0; j < ingredients.length; j++) {
+                                //console.log("inside");
+                               // console.log(ingredients[j].name);
+
+                                if (selected.inventory.get(ingredients[j].name)) {
+                                    var amt = selected.inventory.get(ingredients[j].name);
+                                    selected.inventory.set(ingredients[j].name, ingredients[j].amount + amt);
+                                } else {
+                                    selected.inventory.set(ingredients[j].name, ingredients[j].amount);
+                                  //  console.log("added " + ingredients[j].name + " to map");
+                                }
+                            }
+                        }
+                        // Convert to object to not lose local Map to garbage collection or something
+                        selected.inventory = Object.fromEntries(selected.inventory);
+
+                        $scope.selectedValues.push(selected);
+                        console.log($scope.selectedValues);
+                    }
+                } else {
+                    if (index > -1) {
+                        // removing the value if uncheked and exist in array
+                        $scope.selectedValues.splice(index, 1);
+                    }
+                }
+            };
+
+            //getting the recipes and making sure there is enough in the inventory
+            $http.get("/api/v1/orders").then(function (response) {
+                for (let i = 0; i < response.data.length; i++) {
+                    let items = [];
+                    let recipes = response.data[i].recipes;
+
+                    var j = {
+                        id: response.data[i].id,
+                        name: response.data[i].name,
+                        customer: response.data[i].customer,
+                        recipes: recipes,
+                        status: response.data[i].status,
+                        time: response.data[i].time,
+                        price: response.data[i].totalCost,
+                        items: recipes
+                    };
+
+                    $scope.orders.push(j);
+                }
+            });
+            //when staff clicks complete order button
+            $scope.update = function (order) {
+            	$scope.invalid_inven = false;
+                var index = $scope.orders.indexOf(order);
+                console.log(order);
+
+                $scope.orders[index].status = "IN_PROGRESS";
+
+                // let orderUser = null;
+                // $http.get("/api/v1/customers/" + order.customer).then( function(response) {
+                //         orderUser = response.data;
+                //         console.log(orderUser);
+
+                //         order.customer = orderUser;
+
+                //     }
+                // );
+
+                $http.put("/api/v1/orders/inprogress/" + $scope.user.name, order).then(function (success) {
+                    console.log("Order " + order.name + " set to in progress");
+                }, function(rejection){
+                	if(rejection.status == 409){
+                		$scope.invalid_inven = true;
+                	}
+                });
+
+                // This line removes the order from the list
+                // $scope.selectedValues.splice(index, 1);
+            };
+
+            // Completing an order
+            $scope.complete = function (selected) {
+            	$scope.invalid_inven = false;
+                
+            	 var index = $scope.orders.indexOf(selected);
+
+                $http.put("/api/v1/orders/complete/" + selected.price, selected).then(function (success) {
+                    $scope.successMsg = "Success!\nOrder is completed!";
+                    $scope.showSuccess = true;
+
+                    //find idx of the object
+                    var index = $scope.selectedValues.indexOf(selected);
+
+                    //update the order status after finding it in the idx
+                    $scope.orders[index].status = "COMPLETED";
+                    $scope.selectedValues.splice(index, 1);
+
+                }, function(rejection){
+                	if(rejection.status == 409 || rejection.status == 500){
+                		$scope.invalid_inven = true;
+                		console.log(rejection)
+                	}
+                });
+            };
+
+            //when staff wants to cancel the order
+            $scope.cancel = function (order) {
+            	$scope.invalid_inven = false;
+                
+                var index = $scope.orders.indexOf(order);
+
+                $http.put("/api/v1/orders/cancel/" + order.name).then(function (response) {
+                    console.log("Order " + order.name + " set to in progress");
+                });
+
+                $scope.selectedValues.splice(index, 1);
+
+                $scope.orders[index].status = "CANCELED";
+            };
+            // reseting all the values and forms
+            $scope.reset = function () {
+                $scope.showSuccess = false;
+            };
+        });
+    </script>
+    <!-- to use Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+
+    <div class="generic-container" ng-app="myApp" ng-controller="menu as ctrl" ng-init="showDetails = {}">
+        <!-- to contain the company and logged in user -->
+        <navbar class="navbar navbar-dark bg-dark sticky-top p-3 text-light bg-gradient">
+            <div class="d-flex justify-content-between">
+                <h1 class="text-white mb-0">CoffeeMaker</h1>
+            </div>
+            <div>
+                <div class="d-flex justify-content-between">
+                    <h5 class="mx-5">Logged in as {{user.name}}</h5>
+                    <a href="/"><button class="btn btn-info">Logout</button></a>
+                </div>
+            </div>
+        </navbar>
+
+        <!-- the popup stating a successful transaction -->
+        <div ng-show="showSuccess" class="content success-popup-container show" id="success-popup">
+            <div class="success-popup-content">
+                <div ng-bind="successMsg"></div>
+            </div>
+            <div class="d-flex justify-content-around w-70%">
+                <button class="ok-success-button" ng-click="closePopup()">Ok</button>
+            </div>
+        </div>
+        <!-- Orders display -->
+        <div class="content">
+            <a href="staffHomepage.html"><button class="btn btn-info">Back</button></a>
+            <h3>Staff Order Table</h3>
+            <!-- if no orders -->
+            <div ng-if="0 == orders.length">There are no orders.</div>
+
+            <div class="content customer-table table-responsive-lg">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Select</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Time Placed</th>
+                            <th scope="col">Details</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody ng-repeat="order in orders track by $index"
+                        ng-show="order.status != 'COMPLETED' && order.status != 'CANCELED'">
+                        <tr>
+                            <!-- ng-change="itemChecked($index)" -->
+                            <th scope="col"><input type="checkbox" ng-model="order.isChecked" ng-value="order.value"
+                                    ng-change="select(order)" /></th>
+                            <th scope="row">{{order.id}}</th>
+                            <th>{{order.customer.name}}</th>
+                            <td>{{order.time}}</td>
+                            <td>
+                                <ul ng-repeat="item in order.recipes">
+                                    <li>{{item.name}}</li>
+                                </ul>
+                            </td>
+                            <td>{{order.price}}</td>
+                            <td>{{order.status}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div ng-repeat="selected in selectedValues">
+                <!-- {{selectedValues}} -->
+                <div class="d-flex justify-content-around">
+                    <div>
+                        <h4>Order ID: {{selected.id}}</h4>
+                        <h4>Customer Username: {{selected.customer.name}}</h4>
+                        <h4>Status: {{selected.status}}</h4>
+                        <h4>Order Time: {{selected.time}}</h4>
+                        <h4>Cost: {{selected.price}}</h4>
+                    </div>
+                    <div>
+                        <h4>Ordered Items:</h4>
+                        <ul ng-repeat="item in selected.items">
+                            <li>{{item.name}}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Ingredients Needed:</h4>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Available</th>
+                                </tr>
+                            </thead>
+                            <tbody ng-repeat="(key, value) in selected.inventory">
+                                <td>{{key}}</td>
+                                <td>{{value}}</td>
+                                <td>-</td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div ng-if="selected.status == 'NOT_STARTED'">
+                    <button class="btn btn-warning" ng-value="selected.value" ng-click="update(selected)">Accept
+                        Order</button>
+                    <button class="btn btn-secondary" ng-value="selected.value" ng-click="cancel(selected)">Cancel
+                        Order</button>
+                </div>
+                <div ng-if="selected.status == 'IN_PROGRESS' && !invalid_inven">
+                    <button class="btn btn-warning" ng-value="selected.value" ng-click="complete(selected)">Complete
+                        Order</button>
+                </div>            
+                <div ng-if="selected.status == 'IN_PROGRESS' && invalid_inven">
+                    <button class="btn btn-secondary" ng-value="selected.value" ng-click="cancel(selected)">Cancel
+                        Order</button>
+                </div>
+                 <div ng-show="invalid_inven">Insufficient Inventory</div>
+                       
+            </div>
+
+            <!-- <div ng-repeat="order in orders track by $index" data-ng-show="$index"></div> -->
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,119 @@
+body,
+#mainWrapper {
+    height: 70%;
+    background-color: rgb(245, 245, 245);
+}
+
+body,
+.form-control {
+    font-size: 12px !important;
+}
+
+.floatRight {
+    float: right;
+    margin-right: 18px;
+}
+
+.has-error {
+    color: red;
+}
+
+.formcontainer {
+    background-color: #dae8e8;
+    padding: 20px;
+}
+
+.tablecontainer {
+    padding-left: 20px;
+}
+
+.generic-container {
+    width: 80%;
+    margin-left: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #eae7e7;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 0 30px black;
+}
+
+.custom-width {
+    width: 80px !important;
+}
+
+.username.ng-valid {
+    background-color: lightgreen;
+}
+
+.username.ng-dirty.ng-invalid-required {
+    background-color: red;
+}
+
+.username.ng-dirty.ng-invalid-min {
+    background-color: yellow;
+}
+
+.email.ng-valid {
+    background-color: lightgreen;
+}
+
+.email.ng-dirty.ng-invalid-required {
+    background-color: red;
+}
+
+.success-popup-container,
+.error-popup-container {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    width: 300px;
+    border: 3px solid black;
+    border-radius: 5px;
+    position: fixed;
+    background-color: white;
+    pointer-events: none;
+    top: 15%;
+    left: 42%;
+    padding: 25px;
+    box-shadow: 0 8px 8px -4px gray;
+}
+
+.success-popup-container.show,
+.error-popup-container.show {
+    pointer-events: auto;
+}
+
+.success-popup-content,
+.error-popup-content {
+    font-size: 20px;
+    margin-bottom: 30px;
+    max-width: 100%;
+}
+
+.success-popup-container button,
+.error-popup-container button {
+    border: 0;
+    border-radius: 5px;
+    width: 200px;
+    height: 40px;
+    background-color: #f0ad4e;
+    cursor: pointer;
+}
+.success-popup-container button:hover,
+.error-popup-container button:hover {
+    background-color: #337ab7;
+    color: white;
+}
+input.ng-dirty.ng-invalid-required,
+input.ng-dirty.ng-invalid-number {
+    background-color: red;
+}
+
+input.ng-dirty.ng-invalid-min {
+    background-color: yellow;
+}

@@ -1,0 +1,343 @@
+<!-- rxiao3: Implemented the menu UI enchancement, linking with http, and cleaning up the code -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"></html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="stylesheet" href="css/app.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Menu</title>
+
+        <!-- second font chosen -->
+        <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/architecture-font" type="text/css" />
+        <!-- to use Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+        <!-- to use Bootstrap mask -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet" />
+    </head>
+    <!-- To link AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+
+    <style>
+        body {
+            overflow-x: hidden !important;
+            position: relative;
+        }
+
+        .header {
+            background-color: black;
+            padding-top: 30px;
+            padding-bottom: 30px;
+            /* margin: 10px; */
+        }
+        .mask {
+            overflow-x: hidden !important;
+            overflow-y: auto;
+        }
+        .bg-image {
+            height: 50vh;
+        }
+
+        #icon {
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+        }
+
+        #cart {
+            position: absolute;
+            top: 20px;
+            right: 50px;
+        }
+
+        .menu {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            background-color: var(--black1);
+            width: 100vw;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            width: auto\9; /* ie8 */
+        }
+        .intro {
+            font-size: 1.8em;
+        }
+    </style>
+    <body>
+        <script>
+            //creating an app container to use api endpoints
+            var app = angular.module("myApp", []);
+            app.controller("menu", function ($scope, $http, $q) {
+                //grab all the recipes
+                $scope.recipes = [];
+                $scope.selected = [];
+                // retrieving the recipes to be displayed
+                $http.get("/api/v1/recipes").then(function (response) {
+                    console.log($scope.recipes);
+                    for (let i = 0; i < response.data.length; i++) {
+                        $scope.recipes.push(response.data[i]);
+                    }
+                });
+
+                //the current user in the system (Mock data for now)
+                $scope.user = {
+                    name: sessionStorage.getItem("name"),
+                };
+
+                //retrieve the curr authenticated user
+                $http.get("/api/v1/customers/" + $scope.user.name).then(
+                    function (success) {
+                        console.log("successfully on homepage");
+                    },
+                    function (rejection) {
+                        console.log(rejection);
+                    }
+                );
+
+                //to populate the cart with the selected items
+                $scope.getSelected = function () {
+                    $scope.total = 0;
+                    $scope.numberItems = 0;
+                    for (let i = 0; i < $scope.recipes.length; i++) {
+                        if ($scope.recipes[i].count > 0) {
+                            $scope.total = $scope.total + $scope.recipes[i].count * $scope.recipes[i].price;
+                            $scope.numberItems = $scope.numberItems + $scope.recipes[i].count;
+                        }
+                    }
+                };
+
+                //to close the popup when user clicks 'Ok'
+                $scope.closePopup = function () {
+                    $scope.showSuccess = false;
+                    $scope.reset();
+                };
+
+                //the checkout process and checking if the payment was valid
+                $scope.checkout = function () {
+                    $scope.showSuccess = false;
+                    $scope.invalid_payment = false;
+                    $scope.valid_payment = false;
+                    $scope.empty_cart = false;
+
+                    if ($scope.numberItems == 0) {
+                        $scope.empty_cart = true;
+                    } else if ($scope.payment < $scope.total || $scope.payment == undefined || $scope.payment < 1) {
+                        $scope.invalid_payment = true;
+                    } else {
+
+                        $scope.change = $scope.payment - $scope.total;
+                        $scope.successMsg = "Order successfully placed!\n Number of Items: " + $scope.numberItems + "\nTotal: $" + $scope.total + "\nChange: $" + $scope.change;
+                        $scope.showSuccess = true;
+                        $scope.valid_payment = true;
+                        
+                        var today = new Date();
+                        var firstMin, minutes = today.getMinutes();
+                        if (today.getMinutes() < 10) {
+            				minutes = "0" + firstMin;
+            			}
+                        var timeString = today.getHours() + ":" + minutes + ":" + today.getSeconds();
+						console.log(timeString);
+
+
+                        //to keep track of the recipes added
+                        var checkoutItems = [];
+                        var order = {
+                        
+                            recipes: checkoutItems,
+                            time: timeString,
+                        };
+                        for (let i = 0; i < $scope.recipes.length; i++) {
+                            if ($scope.recipes[i].count > 0) {
+                            	for(let j = 0; j< $scope.recipes[i].count; j++){
+                            		 //find idx of the object
+                                    var idx = $scope.recipes.findIndex((r) => r.name == $scope.recipes[i].name);
+
+                                    //update the order status after finding it in the idx
+
+                                    var obj = $scope.recipes[idx];
+                                    delete obj.count;
+    						
+                                    checkoutItems.push(obj);
+                            	}
+                               
+                            }
+                        }
+                        console.log(order);
+                        $http.post("/api/v1/orders/place/" + $scope.user.name, order).then(
+                            function (success) {
+                            	$scope.change = $scope.payment - $scope.total;
+                                $scope.successMsg = "Order successfully placed!\n Number of Items: " + $scope.numberItems + "\nTotal: $" + $scope.total + "\nChange: $" + $scope.change;
+                                $scope.showSuccess = true;
+                                $scope.valid_payment = true;
+                                console.log("successfully placed an order");
+                            },
+                            function (rejection) {
+                            	alert("invalid");
+                            	   console.log("bad");
+                            }
+                        );
+                    }
+                };
+
+                // reseting all the values and forms
+                $scope.reset = function () {
+                    $scope.showSuccess = false;
+                    $scope.invalid_payment = false;
+                    $scope.valid_payment = false;
+                    $scope.recipes = [];
+                    $scope.selected = [];
+                    $scope.total = 0;
+                    $scope.numberItems = 0;
+                };
+            });
+        </script>
+        <!-- to use Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+
+        <div class="menu-content" ng-app="myApp" ng-controller="menu as ctrl">
+            <div class="mask">
+                <!-- the sidebar that pops up when user wants to checkout -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
+                    <div class="offcanvas-header">
+                        <h5 id="cartLabel">Cart</h5>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <h5 ng-show="total == 0">Nothing in the cart!</h5>
+
+                        <!-- listing all the items in the cart && using ng-show condition to check which items to display -->
+                        <ul class="list-group">
+                            <li class="list-group-item list-group-item-warning d-flex align-items-center" ng-repeat="recipe in recipes " ng-show="recipe.count > 0">
+                                <div class="d-flex justify-content-between">
+                                    <h4>{{recipe.name}}</h4>
+                                    <h4>${{recipe.price}}</h4>
+                                </div>
+
+                                <div class="d-flex justify-content-end input-group mb-3">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-primary" type="button" ng-click="recipe.count = recipe.count +1 ; getSelected()">+</button>
+                                        {{recipe.count}}
+                                        <button class="btn btn-outline-primary" type="button" ng-click="recipe.count = recipe.count -1 ; getSelected()">-</button>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div>
+                            <h4>Number of Items : {{numberItems}}</h4>
+                            <h4>Total $ : {{total}}</h4>
+
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" class="form-control" aria-label="Amount (to the nearest dollar)" ng-model="payment" min="0" />
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-success btn-lg" ng-click="checkout()">Checkout</button>
+                        <!-- the popup stating a successful transaction -->
+                        <div ng-show="showSuccess" class="content success-popup-container show" id="success-popup">
+                            <div class="success-popup-content">
+                                <div ng-bind="successMsg"></div>
+                            </div>
+                            <div class="d-flex justify-content-around w-70%">
+                                <div>
+                                    <a href="menu.html"> <button class="ok-success-button btn btn-light" ng-click="closePopup()" ng-model="goMenu">Menu</button></a>
+                                </div>
+                                <div>
+                                    <a href="customerOrders.html"> <button class="ok-success-button btn btn-dark" ng-click="closePopup()" ng-model="goOrders">View My Orders</button></a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- error messages -->
+                        <div ng-show="invalid_payment">Invalid Payment</div>
+                        <div ng-show="empty_cart">No items selected</div>
+                        <div ng-show="valid_payment">Payment confirmed</div>
+                    </div>
+                </div>
+                <!-- to contain the company and logged in user -->
+                <navbar class="navbar navbar-dark bg-dark sticky-top p-3 text-light bg-gradient">
+                    <div class="d-flex justify-content-between">
+                        <h1 class="text-white mb-0">CoffeeMaker</h1>
+
+                        <!-- <img
+                        src="https://mdbcdn.b-cdn.net/img/new/standard/city/058.webp"
+                        class="ml-5"
+                        alt=""
+                        width="50px"
+                        height="50px"
+                    /> -->
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between">
+                            <h5 class="mx-5">Logged in as {{user.name}}</h5>
+                            <a href="/"><button class="btn btn-info">Logout</button></a>
+                        </div>
+                    </div>
+                </navbar>
+                <a href="customerHomepage.html"><button class="btn btn-info">Back</button></a>
+
+                <!-- the menu content -->
+                <div class="bg-image">
+                    <!-- Photo by Craig Adderley: -->
+                    <img src="./images/espressoMachine.jpg" width="100%" height="30vh" />
+                    <!-- Photo by Chevanon Photography: https://www.pexels.com/photo/woman-pouring-cappuccino-302896/
+                <img
+                    src="https://mdbcdn.b-cdn.net/img/new/standard/city/048.webp"
+                    alt=""
+                    width="100%"
+                    height="20vh"
+                /> -->
+                    <div class="mask flex-center" style="background-color: hsla(0, 0%, 0%, 0.6)">
+                        <div class="title d-flex flex-column justify-content-center align-items-center h-100">
+                            <button id="cart" class="btn btn-warning btn-lg" type="button" data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart" ng-click="getSelected()">Cart</button>
+                            <p class="intro text-white m-3 text-center">Enjoy the best coffee in town! Handcrafted by hardworking CSC undergraduates, we seek to give everyone's morning a boost. We pour our sweat, blood, and tears to delivering only the best products and experience.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- <a href="http://www.freepik.com">Designed by Olga_spb / Freepik</a> -->
+
+                <!-- Item display -->
+                <div class="content">
+                    <!-- if no recipes -->
+                    <div ng-if="0 == recipes.length">There are no menu options available.</div>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4 g-3" ng-repeat="recipe in recipes">
+                                <div class="card shadow-md p-3 rounded">
+                                    <img src="./images/icon2.png" class="card-img-top" alt="{{recipe.name}}" />
+
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{recipe.name}}</h5>
+                                        <span>${{recipe.price}}</span>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="input-group">
+                                               
+                                                <div>
+                                                    <button class="btn btn-dark" ng-click="recipe.count = recipe.count + 1">+</button>
+
+                                                    {{recipe.count}}
+
+                                                    <button class="btn btn-dark" ng-class="{'disabled': recipe.count==0}" ng-click="recipe.count = recipe.count -1 ">-</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
