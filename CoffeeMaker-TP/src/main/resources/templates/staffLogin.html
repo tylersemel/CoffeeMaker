@@ -1,0 +1,189 @@
+<!-- rxiao3: Set up base code for the file -->
+<!-- alhudso4: Move file contents into index.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Staff Login</title>
+                <link rel="stylesheet" href="css/app.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- second font chosen -->
+        <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/architecture-font" type="text/css" />
+        <!-- to use Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+        <!-- to use Bootstrap mask -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet" />
+    </head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+    <style>
+     
+    </style>
+
+    <body class="auth-pages">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+
+        var app = angular.module("myApp", []);
+        app.controller("loginCtrl", function ($scope, $http, $q) {
+            $scope.account = {
+                name: "",
+                password: "",
+            };
+
+            // Resets the form so that all fields are empty.
+            $scope.reset = function () {
+                // reset form
+                if (undefined != $scope.loginForm) {
+                    $scope.loginForm.$setPristine();
+                }
+                $scope.account = {
+                    staffName: "",
+
+         
+                };
+                $scope.no_authorization = false;
+                $scope.logged_in = false;
+            };
+
+                $scope.reset = function () {
+                    // reset form
+                    if (undefined != $scope.loginForm) {
+                        $scope.loginForm.$setPristine();
+                    }
+                    $scope.account = {
+                        name: "",
+                        password: "",
+                    };
+                    $scope.no_authorization = false;
+                    $scope.logged_in = false;
+                };
+
+              //checking to see if the staff is in th db
+                $scope.login = function () {
+                
+                    $scope.no_authorization = false;
+                    $scope.logged_in = false;
+                    $scope.error = false;
+                   
+                    
+                    console.log($scope.account);
+
+                    //condition to call api to check if the account exists/name passes/password passes
+                    //after calling the http request
+                    $http.post("api/v1/admin/login", $scope.account).then(
+                    	function (success) {
+                    		sessionStorage.setItem("name", $scope.account.name);  
+                            $scope.reset();
+                            document.location = "adminHomepage.html";
+                    	},
+                    	function (rejection) {
+                    		if (rejection.status == 409) {
+                    			console.log(rejection);
+                            	$scope.error = true;
+                    
+                                $scope.errorMessage = "Already logged in";
+                    		}else if(
+                    				rejection.status == 404 || rejection.status == 400){
+                    			  $scope.no_authorization = true;
+                    		}
+                    		
+                    		// fine, maybe it's a staff account, go check that.
+                    	}
+                    );
+                    $http.post("/api/v1/staffs/login", $scope.account).then(
+                        function (success) {
+                        	// Stores the username of the user, resets the form, takes them to their
+                        	// homepage.
+                            sessionStorage.setItem("staffName", $scope.account.name);  
+                            $scope.reset();
+                            document.location = "staffHomepage.html";
+                        },
+                        function (rejection) {
+
+                        		if (rejection.status == 409) {
+                        			console.log(rejection);
+                                	$scope.error = true;
+                        
+                                    $scope.errorMessage = "Already logged in";
+                        		}else if(
+                        				rejection.status == 404 || rejection.status == 400){
+                        			  $scope.no_authorization = true;
+                        		}
+                        		
+                        		// fine, maybe it's a staff account, go check that.
+                        	
+                        }
+                    );
+                };
+            });
+
+
+        /*]]>*/
+    </script>
+
+      <div ng-app="myApp" class="content generic-container ng-cloak" ng-controller="loginCtrl as ctrl">
+            <nav class="navbar sticky-top navbar-expand-lg navbar-dark text-light bg-dark bg-gradient p-3">
+                <h1>CoffeeMaker</h1>
+                <div>
+                    <a href="/"><button id="customerLogin" class="btn btn-outline-info btn-sm">Customer Login</button></a>
+                  </div>
+            </nav>
+            <div class="content bg-light">
+                <div class="row">
+                    <div class="logo col-xl d-flex justify-content-center">
+                    
+                       <img src="./images/beanHeaven.jpg" alt="" width="100%" height="450px" />
+                     </div>
+
+                    <div class="input col-xl d-flex justify-content-center">
+                        <form class="bg-light p-5" ng-submit="login()" name="loginForm">
+                            <h3>Staff Login</h3>
+                            <div class="form-group">
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2 control-lable">Username:</label>
+
+                                    <div class="col-md-12">
+                                        <input id="name" type="text" ng-model="account.name" name="name" class="form-control input-sm" required />
+                                        <div class="has-error" ng-show="loginForm.$dirty">
+                                            <span ng-show="loginForm.name.$error.required">This is a required field.</span>
+                                            <span ng-show="loginForm.name.$invalid">This field is invalid.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2 control-lable">Password:</label>
+                                    <div class="col-md-12">
+                                        <input id="password" type="password" ng-model="account.password" name="password" class="form-control input-sm" required />
+                                        <div class="has-error" ng-show="loginForm.$dirty">
+                                            <span ng-show="loginForm.password.$error.required">This is a required field.</span>
+                                            <span ng-show="loginForm.password.$invalid">This field is invalid.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- p-3 mt-5 btn btn-lg btn-block btn-outline-dark btn-primary -->
+
+                            <input type="submit" id="login" value="Login" class="btn btn-primary btn-lg mt-2" ng-disabled="loginForm.$invalid" />
+
+                            <div class="err-msg" ng-show="no_authorization">Invalid Credentials</div>
+                            <div class="err-msg" ng-show="logged_in">Already Logged In</div>
+                            <!-- <div ng-show="sys_down">System down for maintenance</div> -->
+                            <!-- <div ng-if=""></div> -->
+                           
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

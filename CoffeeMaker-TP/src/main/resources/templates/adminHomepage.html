@@ -1,0 +1,104 @@
+<!-- rxiao3: Set up base code for the file -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="css/app.css" />
+        <title>Homepage</title>
+        <!-- Using Free Google fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- second font chosen -->
+        <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/architecture-font" type="text/css" />
+        <!-- to use Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+        <!-- to use Bootstrap mask -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet" />
+    </head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+    <style>
+        
+    </style>
+
+    <body>
+        <script>
+            //creating an app container to use api endpoints
+            var app = angular.module("myApp", []);
+            app.controller("homepage", function ($scope, $http, $q) {
+                //the current user in the system (Mock data for now)
+                $scope.user = {
+                    name: sessionStorage.getItem("name"),
+                };
+
+                //retrieve the curr authenticated user
+                //$http.get("/api/v1/customers/" + $scope.user.name).then(
+                 //   function (success) {
+                        //console.log("successfully on homepage");
+                 //   },
+                 //   function (rejection) {
+                        //console.log(rejection);
+                 //   }
+              //  );
+
+                $scope.logout = function () {
+                    $http
+                        .get("/api/v1/admin/" + $scope.user.name)
+                        .then(function (success) {
+                            $scope.user = {};
+                            $scope.user = response.data;
+                        });
+
+                    $http
+                        .post("/api/v1/admin/logout", $scope.user)
+                        .then(function (success) {
+                            sessionStorage.clear();
+                            $scope.user = {};
+                            document.location = "staffLogin.html";
+                        });
+                    
+                };
+            });
+        </script>
+
+        <div
+            layout:fragment="content"
+            class="content"
+            ng-app="myApp"
+            ng-controller="homepage as ctrl"
+        >
+            <div class="mask" style="background-color: hsla(0, 0%, 0%, 0.6)">
+                <!-- to contain the company and logged in user -->
+                <navbar class="navbar navbar-dark bg-dark sticky-top p-3 text-light bg-gradient">
+                    <div class="d-flex justify-content-between">
+                        <h1 class="text-white mb-0">CoffeeMaker</h1>
+
+                        <!-- <img
+                        src="https://mdbcdn.b-cdn.net/img/new/standard/city/058.webp"
+                        class="ml-5"
+                        alt=""
+                        width="50px"
+                        height="50px"
+                    /> -->
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between">
+                            <h5 class="mx-5">Logged in as {{user.name}}</h5>
+                            <button ng-click="logout()" class="btn btn-info">Logout</button>
+                        </div>
+                    </div>
+                </navbar>
+             
+            <div class="row" style="text-align:center">
+                <div>
+                        <a href="createStaff.html"><button class="sec btn btn-light" style="max-width: 18rem">Create Staff</button></a>
+                    </div>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,159 @@
+<!-- rxiao3: Implemented the menu UI enchancement, linking with http, and cleaning up the code -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"></html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="stylesheet" href="css/app.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Menu</title>
+        <!-- second font chosen -->
+        <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/architecture-font" type="text/css" />
+        <!-- to use Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+        <!-- to use Bootstrap mask -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet" />
+    </head>
+    <!-- To link AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+
+    <style>
+        body {
+            display: block;
+        }
+    </style>
+    <body style="background-color: #ae8d77">
+        <script>
+            //creating an app container to use api endpoints
+            var app = angular.module("myApp", []);
+            app.controller("menu", function ($scope, $http, $q) {
+                //grab orders
+                $scope.order = [];
+
+                //grab all the orders
+                $scope.orders = [];
+
+                //the current user in the system (Mock data for now)
+                $scope.user = {
+                    name: sessionStorage.getItem("name"),
+                };
+
+                // retrieving the orders to be displayed
+                $http.get("/api/v1/orders/customer/" + $scope.user.name).then(function (response) {
+                    console.log(response.data);
+                    for (let i = 0; i < response.data.length; i++) {
+                        var j = {
+                            id: response.data[i].id,
+                            name: response.data[i].name,
+                            recipes: response.data[i].recipes,
+                            status: response.data[i].status,
+                            time: response.data[i].time,
+                            price: response.data[i].totalCost,
+                        };
+
+                        $scope.orders.push(j);
+                        console.log(j);
+                    }
+                });
+                
+                
+
+                //to close the popup when user clicks 'Ok'
+                $scope.closePopup = function () {
+                    $scope.showSuccess = false;
+                    $scope.reset();
+                };
+
+                $scope.completeOrder = function (event, id) {
+                    event.target.disabled = true;
+                    $scope.successMsg = "Success!\nOrder " + id + " is completed!";
+                    $scope.showSuccess = true;
+
+                    //find idx of the object
+                    var idx = $scope.orders.findIndex((order) => order.id == id);
+                    //update the order status after finding it in the idx
+                    $scope.orders[idx].status = "PICKED_UP";
+//                    console.log($scope.orders[idx]);
+
+                    $http.put("/api/v1/orders/pickup/" + $scope.user.name,  $scope.orders[idx]).then(function (response) {
+                      console.log("picked up");
+                   
+                    });
+                };
+
+                // reseting all the values and forms
+                $scope.reset = function () {
+                    $scope.showSuccess = false;
+                };
+            });
+        </script>
+        <!-- to use Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+
+        <div  ng-app="myApp" ng-controller="menu as ctrl">
+            <!-- to contain the company and logged in user -->
+            <navbar class="navbar navbar-dark bg-dark sticky-top p-3 text-light bg-gradient">
+                <div class="d-flex justify-content-between">
+                    <h1 class="text-white mb-0">CoffeeMaker</h1>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <h5 class="mx-5">Logged in as {{user.name}}</h5>
+                        <a href="/"><button class="btn btn-info">Logout</button></a>
+                    </div>
+                </div>
+            </navbar>
+            <!-- the popup stating a successful transaction -->
+            <div ng-show="showSuccess" class="content success-popup-container show" id="success-popup">
+                <div class="success-popup-content">
+                    <div ng-bind="successMsg"></div>
+                </div>
+                <div class="d-flex justify-content-around w-70%">
+                    <button class="ok-success-button" ng-click="closePopup()">Ok</button>
+                </div>
+            </div>
+            <!-- Orders display -->
+            <div class="content">
+                <a href="customerHomepage.html"><button class="btn btn-info">Back</button></a>
+                <h3>My Orders</h3>
+                <!-- if no orders -->
+                <div ng-if="0 == orders.length">There are no orders.</div>
+
+                <div class="content customer-table table-responsive-lg">
+                    <table class="table table-dark table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Time Placed</th>
+                                <th scope="col">Details</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">---</th>
+                            </tr>
+                        </thead>
+                        <tbody ng-repeat="order in orders">
+                            <tr>
+                                <th scope="row">{{order.id}}</th>
+                                <td>{{order.time}}</td>
+                                <td >
+                                <ul>
+                                <li ng-repeat="r in order.recipes">
+                                 {{r.name}} : ${{r.price}}
+                              
+                                </li>
+                                </ul>
+                              
+                                </td>
+                                <td>{{order.price}}</td>
+                                <td>{{order.status}}</td>
+                                <td><button class="btn btn-secondary" ng-class="{'disabled': order.status != 'COMPLETED'}" ng-click="completeOrder($event, order.id)">Pick Up Order</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

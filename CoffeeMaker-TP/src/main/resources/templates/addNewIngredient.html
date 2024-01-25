@@ -1,0 +1,262 @@
+<!-- @author ssgowda3The static html file for the UC7: Add new Ingredient to inventory -->
+<!-- @author rxiao3 : Worked on the AngularJS for UC7 add new ingredient -->
+<!-- @author tlsemel : Implmented the popup logic -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Add New Ingredient</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="css/onboarding.css" />
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                line-height: 10 px;
+                top: 50vh;
+                padding: 30px;
+                margin: 20px;
+            }
+
+            h4,
+            .panel-heading {
+                text-align: center;
+            }
+
+            .panel {
+                display: flex;
+                box-shadow: 0 8px 8px -4px gray;
+            }
+            .back-btn {
+                padding: 5px 10px 5px 10px;
+                margin: 5px;
+            }
+            .back-btn a {
+                text-decoration: none;
+            }
+            .sec-1 {
+                padding: 8px;
+            }
+            label {
+                padding: 3px;
+                width: 100px;
+                margin-left: 10px;
+            }
+            form {
+                margin: auto 0;
+                width: 25vw;
+            }
+            .back-btn {
+                float: bottom;
+            }
+
+            .count {
+                font-size: medium;
+                margin-left: 5px;
+                padding: 3px;
+            }
+            #list {
+                background-color: #337ab7;
+                height: 200px;
+                overflow-y: scroll;
+                width: 30vw;
+                font-size: large;
+            }
+            #list li {
+                background-color: #dae8e8;
+                padding: 8px;
+                margin: 2px;
+            }
+
+            input.ng-valid {
+                background-color: lightgreen;
+            }
+
+            /*to style the popups*/
+            .content {
+                position: absolute;
+                align-self: center;
+                /* margin-right: 50px; */
+                top: 0;
+            }
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-sanitize.min.js"></script>
+    </head>
+    <body>
+        <script>
+            //to declare the controller/scope space
+            /*<![CDATA[*/
+            var app = angular.module("myApp", []);
+            app.controller("ingredientCtrl", function ($scope, $http, $q) {
+                // the array to display a list of ingredients in the scroll box
+                $scope.ingredients = {};
+
+                // the array to display a list of inventory
+                $scope.inventory = {};
+
+                //boolean to show the success popup
+                $scope.showSuccess = false;
+                //boolean to show the error popup
+                $scope.showErr = false;
+
+                $scope.addNew = {};
+                $scope.addNewIn = {};
+
+                // to reset the form if reset button is clicked
+                $scope.reset = function () {
+                    $scope.ingredient = {
+                        name: "",
+                        amount: "",
+                    };
+
+                    if (undefined != $scope.addIngredientForm) {
+                        $scope.addIngredientForm.$setPristine();
+                    }
+                };
+                // to add the ingredient to the list and reset the form
+                $scope.submitThis = function () {
+                    //$scope.updateInventory();
+                    $scope.addIngredient();
+                    $scope.reset();
+                };
+
+                //to close the popup when user clicks 'Ok'
+                $scope.closePopup = function () {
+                    $scope.showErr = false;
+
+                    $scope.showSuccess = false;
+                };
+
+                $scope.addToInventory = function () {
+                    $http.post("/api/v1/inventory", $scope.addNew).then(
+                        function (success) {
+                            //setting the success msg
+                            $scope.successMsg = "Sucess!\n You have successfully added an ingredient";
+
+                            $scope.showErr = false;
+                            $scope.showSuccess = true;
+
+                            $scope.getIngredients();
+                        },
+                        function (rejection) {
+                            if (rejection.status == 409) {
+                                $scope.failureMsg = "Error - Duplicate Name\n This Ingredient already exists in the inventory. Try again.";
+                            } else if (rejection.status == 507) {
+                                $scope.failureMsg = "Error - Invalid Input\n The amount entered must be a positive integer and less than 100. ";
+                            } else if (rejection.status == 406) {
+                                $scope.failureMsg = "Error - Invalid Input\n The amount entered must be a positive integer and less than 100. ";
+                            }
+
+                            $scope.showErr = true;
+                            $scope.showSuccess = false;
+                        }
+                    );
+                };
+
+                // GET api to have the ingredients displayed on screen and display the new ingredient when added
+                $scope.getIngredients = function () {
+                    $http.get("/api/v1/inventory").then(function (response) {
+                        $scope.inventory = response.data;
+                        $scope.ingredients = response.data;
+                        $scope.count = "Count: " + $scope.inventory.length;
+                    });
+                };
+                $scope.addIngredient = function () {
+                    $scope.showErr = false;
+                    $scope.showSuccess = false;
+                    $scope.addNew = $scope.ingredient;
+                    console.log($scope.ingredient);
+                    // POST api to append the new ingredient
+                    $scope.addToInventory();
+                };
+
+                //to load the list of ingredients when webpage loads & wehn user adds to list
+                $scope.$on("$viewContentLoaded", $scope.getIngredients());
+                $scope.reset();
+            });
+            /*]]>*/
+        </script>
+
+        <div>
+            <a href="/staffHomepage.html">Home</a>
+            <!-- The section containing the form for the user to fill out the name and initial amount of the new ingredient -->
+
+            <div class="panel-heading">
+                <span class="lead">Add New Ingredient</span>
+            </div>
+
+            <div id="list-container" ng-app="myApp" ng-controller="ingredientCtrl">
+                <div ng-show="showSuccess" class="content success-popup-container show" id="success-popup">
+                    <div class="success-popup-content">
+                        <div ng-bind="successMsg"></div>
+                    </div>
+                    <button class="ok-success-button" ng-click="closePopup()">Ok</button>
+                </div>
+
+                <div ng-show="showErr" class="content error-popup-container show" id="error-popup">
+                    <div class="error-popup-content">
+                        <div ng-bind="failureMsg"></div>
+                    </div>
+                    <button class="ok-error-button" ng-click="closePopup()">Ok</button>
+                </div>
+                <div class="panel panel-default">
+                    <div class="sec-1">
+                        <h4>Ingredients</h4>
+                        <span class="count" ng-bind="count">Count: </span><br />
+                        <span>Max 100 ingredients</span>
+                        <div id="list">
+                            <div class="list-item" ng-repeat="ingredient in ingredients track by $index">
+                                <!-- display a list of ingredients -->
+                                <li>{{ingredient.name}} : {{ingredient.amount}}</li>
+                            </div>
+                        </div>
+                        <div id="list">
+                            <div class="list-item" ng-repeat="ingredient in inventory.ingredients track by $index">
+                                <!-- display a list of ingredients -->
+                                <li>{{ingredient.name}} : {{ingredient.amount}}</li>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formcontainer">
+                        <form ng-submit="submitThis()" name="addIngredientForm" class="form-horizontal">
+                            <div class="row">
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2 control-lable" for="file">Name</label>
+                                    <div class="col-md-7">
+                                        <input type="text" ng-model="ingredient.name" name="name" class="name form-control input-sm" placeholder="Enter ingredient name" required="0" pattern="[ a-zA-Z]+" />
+                                        {{testName()}}
+                                        <div class="has-error" ng-show="addIngredientForm.$dirty"><span ng-show="addIngredientForm.name.$error.required">This is a required field.</span> <span ng-show="addIngredientForm.name.$invalid">This field is invalid.</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2 control-lable" for="file">Amount : (100 units max)</label>
+                                    <div class="col-md-7">
+                                        <input type="number" ng-model="ingredient.amount" name="amount" class="amount form-control input-sm" placeholder="Enter amount" required="0" min="0" />
+                                        <div class="has-error" ng-show="addIngredientForm.$dirty">
+                                            <span ng-show="addIngredientForm.amount.$error.required">This is a required field</span> <span ng-show="addIngredientForm.amount.$error.min">Minimum amount is 0</span>
+                                            <span ng-show="addIngredientForm.amount.$invalid">This field is invalid </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-actions floatRight">
+                                    <input ng-click="showThis" type="submit" id="add-btn" value="Add Ingredient" class="btn btn-primary btn-sm" ng-disabled="addIngredientForm.$invalid" />
+                                    <button type="button" id="failure" ng-click="reset()" class="btn btn-warning btn-sm" ng-disabled="addIngredientForm.$pristine">Reset Form</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <button class="back-btn"><a href="/staffHomepage.html">Back</a></button>
+        </div>
+    </body>
+</html>

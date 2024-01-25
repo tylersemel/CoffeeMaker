@@ -1,0 +1,65 @@
+<diagram program="umletino" version="15.1"><zoom_level>9</zoom_level><element><id>UMLGeneric</id><coordinates><x>0</x><y>0</y><w>90</w><h>27</h></coordinates><panel_attributes>_Front End_
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>171</x><y>0</y><w>126</w><h>27</h></coordinates><panel_attributes>_APIAdminController_
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>612</x><y>0</y><w>117</w><h>27</h></coordinates><panel_attributes>_AdminRepository_
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>657</x><y>18</y><w>27</w><h>207</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;210</additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>63</y><w>207</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+login(admin)</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>225</x><y>63</y><w>18</w><h>720</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>225</x><y>18</y><w>27</w><h>63</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;50</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>189</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;
+AdminService.findByName(name)</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>522</x><y>189</y><w>18</w><h>54</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>189</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;
+AdminRepository.find()</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>657</x><y>207</y><w>18</w><h>36</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>225</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+DomainObject</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>225</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+Admin</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>UMLFrame</id><coordinates><x>9</x><y>279</y><w>684</w><h>216</h></coordinates><panel_attributes>alt
+--
+[AdminService.find() == null]
+
+
+
+-..
+[else]
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>297</y><w>207</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+ResponseEntity</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>657</x><y>234</y><w>27</w><h>225</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;230</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>486</x><y>0</y><w>99</w><h>27</h></coordinates><panel_attributes>_AdminService_
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>522</x><y>18</y><w>27</w><h>189</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;190</additional_attributes></element><element><id>Relation</id><coordinates><x>522</x><y>234</y><w>27</w><h>207</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;210</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>351</x><y>0</y><w>90</w><h>27</h></coordinates><panel_attributes>_Admin_
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>387</x><y>162</y><w>27</w><h>225</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;230</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>63</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+admin.getName()</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>387</x><y>72</y><w>18</w><h>45</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>90</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+name</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>144</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+password</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>Relation</id><coordinates><x>387</x><y>18</y><w>27</w><h>369</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;390</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>387</x><y>126</y><w>18</w><h>45</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>387</x><y>108</y><w>27</w><h>36</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>117</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+admin.getPassword()</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>18</y><w>27</w><h>783</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;850</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>432</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+AdminService.save(a1)</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>396</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+a1.setIsLoggedIn(true)</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>522</x><y>423</y><w>18</w><h>54</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>387</x><y>369</y><w>18</w><h>63</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>369</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+a1 = new Admin()</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>Relation</id><coordinates><x>387</x><y>423</y><w>27</w><h>279</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;290</additional_attributes></element><element><id>Relation</id><coordinates><x>522</x><y>468</y><w>27</w><h>45</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;30</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>450</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+Admin</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>UMLFrame</id><coordinates><x>9</x><y>522</y><w>684</w><h>81</h></coordinates><panel_attributes>alt
+--
+[admin.getPassword() != a1.getPassword()]
+
+
+
+-..
+[else]
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>549</y><w>207</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+ResponseEntity</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>387</x><y>360</y><w>27</w><h>27</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>522</x><y>486</y><w>27</w><h>252</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;260;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>432</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;
+AdminRepository.find()</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>450</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+DomainObject</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>657</x><y>441</y><w>18</w><h>36</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLFrame</id><coordinates><x>9</x><y>612</y><w>684</w><h>171</h></coordinates><panel_attributes>alt
+--
+[a1.getIsLoggedIn() == true]
+
+
+
+-..
+[else]
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>657</y><w>207</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+ResponseEntity</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>702</y><w>171</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+a1.setIsLoggedIn(true)</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>387</x><y>684</y><w>18</w><h>45</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>729</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;&gt;
+AdminService.save(a1)</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>522</x><y>720</y><w>18</w><h>54</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>720</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=-&gt;&gt;
+AdminRepository.find()</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>Relation</id><coordinates><x>531</x><y>738</y><w>144</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+DomainObject</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>UMLGeneric</id><coordinates><x>657</x><y>729</y><w>18</w><h>36</h></coordinates><panel_attributes>
+bg=orange</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>657</x><y>468</y><w>27</w><h>279</h></coordinates><panel_attributes>lt=.</panel_attributes><additional_attributes>10;10;10;290</additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>747</y><w>207</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+ResponseEntity</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>234</x><y>747</y><w>306</w><h>36</h></coordinates><panel_attributes>lt=&lt;..
+Admin</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element></diagram>
